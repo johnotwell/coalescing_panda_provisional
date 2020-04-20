@@ -16,7 +16,7 @@ Gem::Specification.new do |s|
   s.test_files = Dir["spec/**/*"]
 
   s.add_dependency "rails", "~> 4.0.1"
-  s.add_dependency "bearcat", ">=0.9.20"
+  s.add_dependency "bearcat", "~> 0.9.20"
   s.add_dependency "macaddr", "1.6.1"
   s.add_dependency "ims-lti"
   s.add_dependency "haml-rails"
@@ -26,6 +26,7 @@ Gem::Specification.new do |s|
   s.add_dependency 'protected_attributes'
   s.add_dependency 'p3p'
   s.add_dependency 'useragent'
+  s.add_dependency 'browser', "< 2.0.0"
 
   s.add_development_dependency "sqlite3"
   s.add_development_dependency "rspec-rails"
