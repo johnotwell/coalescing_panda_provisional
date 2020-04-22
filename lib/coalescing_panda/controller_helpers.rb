@@ -60,6 +60,7 @@ module CoalescingPanda
 
     def lti_authorize!(*roles)
       authorized = false
+      use_secure_headers_override(:safari_override) if browser.safari?
       if @lti_account = params['oauth_consumer_key'] && LtiAccount.find_by_key(params['oauth_consumer_key'])
         sanitized_params = sanitize_params
         authenticator = IMS::LTI::Services::MessageAuthenticator.new(request.original_url, sanitized_params, @lti_account.secret)
@@ -158,6 +159,7 @@ module CoalescingPanda
         session[:safari_cookie_fixed] = true
         redirect_to params[:return_to]
       else
+        use_secure_headers_override(:safari_override)
         render 'coalescing_panda/lti/iframe_cookie_fix', layout: false
       end
     end
