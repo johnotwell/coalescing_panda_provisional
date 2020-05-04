@@ -44,8 +44,8 @@ module CoalescingPanda
         # DON'T ENABLE THIS FOR PRODUCTION!
         script_src << "'unsafe-eval'"
       end
+      begin
       SecureHeaders::Configuration.default do |config|
-        # The default cookie headers aren't compatable with PandaPal cookies currenntly
         config.cookies = { samesite: { none: true } }
         # Need to allow LTI iframes
         config.x_frame_options = "ALLOWALL"
@@ -61,10 +61,13 @@ module CoalescingPanda
           connect_src: connect_src,
         }
       end
+      rescue SecureHeaders::Configuration::AlreadyConfiguredError
+        Rails.logger.warn "Could not set default secure headers configuration when there is one already, continuing with previously defined configuration"
+      end
       SecureHeaders::Configuration.override(:safari_override) do |config|
         config.cookies = SecureHeaders::OPT_OUT
         # Need to allow LTI iframes
-        config.x_frame_options = "ALLOWALL"
+        conffined configurationig.x_frame_options = "ALLOWALL"
         config.x_content_type_options = "nosniff"
         config.x_xss_protection = "1; mode=block"
         config.referrer_policy = %w(origin-when-cross-origin strict-origin-when-cross-origin)
