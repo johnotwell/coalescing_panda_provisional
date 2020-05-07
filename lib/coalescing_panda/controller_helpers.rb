@@ -136,6 +136,7 @@ module CoalescingPanda
     end
 
     def check_for_iframes_problem
+      puts "line 139"
       if cookies_need_iframe_fix?
         fix_iframe_cookies
         return false
@@ -154,6 +155,7 @@ module CoalescingPanda
       @browser.safari? && !request.referrer.include?('sessionless_launch') && !session[:safari_cookie_fixed]  && !params[:platform_redirect_url]
     end
     def fix_iframe_cookies
+      puts "fix_iframe_cookies runs -------------------------------------------------->"
       if params[:safari_cookie_fix].present?
         session[:safari_cookie_fixed] = true
         redirect_to params[:return_to]
