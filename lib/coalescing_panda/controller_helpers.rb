@@ -5,7 +5,6 @@ module CoalescingPanda
     require 'useragent'
 
     def canvas_oauth2(*roles)
-      puts "line ------------------------------------------------- 8"
       return if have_session?
       if lti_authorize!(*roles)
         user_id = params['user_id']
@@ -65,8 +64,8 @@ module CoalescingPanda
         sanitized_params = sanitize_params
         authenticator = IMS::LTI::Services::MessageAuthenticator.new(request.original_url, sanitized_params, @lti_account.secret)
         authorized = authenticator.valid_signature?
-        @tp = IMS::LTI::ToolProvider.new(@lti_account.key, @lti_account.secret, params)
-        authorized = authorized && @tp.valid_request?(request)
+        # @tp = IMS::LTI::ToolProvider.new(@lti_account.key, @lti_account.secret, params)
+        # authorized = authorized && @tp.valid_request?(request)
       end
       logger.info 'not authorized on tp valid request' if !authorized
       authorized = authorized && (roles.count == 0 || (roles & lti_roles).count > 0)
