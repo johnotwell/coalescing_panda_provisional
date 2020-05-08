@@ -150,7 +150,7 @@ module CoalescingPanda
       true
     end
     def cookies_need_iframe_fix?
-      @browser ||= Browser.new(request.user_agent)
+      @browser ||= Browser.new(request)
       @browser.safari? && !request.referrer.include?('sessionless_launch') && !session[:safari_cookie_fixed]  && !params[:platform_redirect_url]
     end
     def fix_iframe_cookies
