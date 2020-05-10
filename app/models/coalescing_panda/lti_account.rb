@@ -6,7 +6,7 @@ module CoalescingPanda
              :foreign_key => :coalescing_panda_lti_account_id,
              :class_name => 'CoalescingPanda::LtiNonce'
 
-    attr_accessible :name, :key, :secret, :oauth2_client_id, :oauth2_client_key, :settings
+    attr_accessible :name, :key, :secret, :oauth2_client_id, :oauth2_client_key, :settings, :coalescing_panda_lti_nonces
     serialize :settings
 
     def validate_nonce(nonce, timestamp)
