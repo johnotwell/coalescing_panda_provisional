@@ -27,6 +27,7 @@ Gem::Specification.new do |s|
   s.add_dependency 'p3p'
   s.add_dependency 'useragent'
   s.add_dependency 'browser', "< 2.0.0"
+  s.add_dependency 'secure_headers'
 
   s.add_development_dependency "sqlite3"
   s.add_development_dependency "rspec-rails"
