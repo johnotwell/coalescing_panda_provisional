@@ -2,6 +2,8 @@ require 'browser'
 
 module CoalescingPanda
   module ControllerHelpers
+    include IMS::LTI::RequestValidator
+    require 'useragent'
 
     def canvas_oauth2(*roles)
       return if have_session?
@@ -76,7 +78,7 @@ module CoalescingPanda
     end
 
     def have_session?
-      if params['tool_consumer_instance_guid'] && session['user_id'] != params['user_id']
+      if params['oauth_consumer_key'] && session['user_id'] != params['user_id']
         reset_session
         logger.info("resetting session params")
         session['user_id'] = params['user_id']
@@ -100,17 +102,24 @@ module CoalescingPanda
 
     def lti_authorize!(*roles)
       authorized = false
+      puts ('user_agent: ' + request.user_agent.to_json)
+      browser ||= Browser.new({ua: request.user_agent})
+      use_secure_headers_override(:safari_override) if browser.safari?
       if @lti_account = params['oauth_consumer_key'] && LtiAccount.find_by_key(params['oauth_consumer_key'])
         sanitized_params = sanitize_params
-        authenticator = IMS::LTI::Services::MessageAuthenticator.new(request.original_url, sanitized_params, @lti_account.secret)
-        authorized = authenticator.valid_signature?
+        # authorized = valid_request?(request)
+        # authorized = authenticator.valid_signature?
+        @tp = IMS::LTI::ToolProvider.new(@lti_account.key, @lti_account.secret, sanitized_params)
+        authorized = @tp.valid_request?(request)
       end
       logger.info 'not authorized on tp valid request' if !authorized
       authorized = authorized && (roles.count == 0 || (roles & lti_roles).count > 0)
       logger.info 'not authorized on roles' if !authorized
       authorized = authorized && @lti_account.validate_nonce(params['oauth_nonce'], DateTime.strptime(params['oauth_timestamp'], '%s'))
       logger.info 'not authorized on nonce' if !authorized
-      render :text => 'Invalid Credentials, please contact your Administrator.', :status => :unauthorized unless authorized
+      if !authorized
+        render :text => 'Invalid Credentials, please contact your Administrator.', :status => :unauthorized
+      end
       authorized = authorized && check_for_iframes_problem if authorized
       authorized
     end
@@ -168,7 +177,7 @@ module CoalescingPanda
     end
 
     def session_check
-      logger.warn 'session_check is deprecated. Functionality moved to canvas_oauth2.'
+            logger.warn 'session_check is deprecated. Functionality moved to canvas_oauth2.'
     end
 
     def check_for_iframes_problem
@@ -176,11 +185,11 @@ module CoalescingPanda
         fix_iframe_cookies
         return false
       end
-
       # For safari we may have been launched temporarily full-screen by canvas.  This allows us to set the session cookie.
       # In this case, we should make sure the session cookie is fixed and redirect back to canvas to properly launch the embedded LTI.
       if params[:platform_redirect_url]
         session[:safari_cookie_fixed] = true
+
         redirect_to params[:platform_redirect_url]
         return false
       end
@@ -188,18 +197,19 @@ module CoalescingPanda
     end
 
     def cookies_need_iframe_fix?
-      @browser ||= Browser.new(request.user_agent)
-      @browser.safari? && !request.referrer&.include?('sessionless_launch') && !session[:safari_cookie_fixed]  && !params[:platform_redirect_url]
+      browser ||= Browser.new({ua: request.user_agent})
+      browser.safari? && !request.referrer.include?('sessionless_launch') && !session[:safari_cookie_fixed]  && !params[:platform_redirect_url]
     end
 
     def fix_iframe_cookies
+      puts "fix_iframe_cookies running -------------------------------------------------"
       if params[:safari_cookie_fix].present?
         session[:safari_cookie_fixed] = true
         redirect_to params[:return_to]
       else
+        use_secure_headers_override(:safari_override)
         render 'coalescing_panda/lti/iframe_cookie_fix', layout: false
       end
     end
-
   end
 end

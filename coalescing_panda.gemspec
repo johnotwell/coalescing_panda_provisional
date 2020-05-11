@@ -15,9 +15,8 @@ Gem::Specification.new do |s|
   s.files = Dir["{app,config,db,lib}/**/*", "MIT-LICENSE", "Rakefile", "README.rdoc"]
   s.test_files = Dir["spec/**/*"]
 
-  s.add_dependency "rails", "~> 4.2.1"
-  s.add_dependency "bearcat", "~> 1.3.0"
-  s.add_dependency "browser"
+  s.add_dependency "rails", "~> 4.0.1"
+  s.add_dependency "bearcat", "~> 0.9.20"
   s.add_dependency "macaddr", "1.6.1"
   s.add_dependency "ims-lti", '>= 2.1.0'
   s.add_dependency "haml-rails"
@@ -25,12 +24,9 @@ Gem::Specification.new do |s|
   s.add_dependency "jquery-rails"
   s.add_dependency "coffee-rails"
   s.add_dependency 'p3p'
-  s.add_dependency 'delayed_job_active_record'
-  s.add_dependency 'open_uri_redirections'
-  s.add_dependency 'oauth', '~> 0.5.4'
-  s.add_dependency 'rubyzip', '>= 1.0.0'
-  s.add_dependency 'secure_headers', '~> 6.3'
-  s.add_dependency 'zip-zip'
+  s.add_dependency 'useragent'
+  s.add_dependency 'browser', "< 2.0.0"
+  s.add_dependency 'secure_headers'
 
   s.add_development_dependency "sqlite3"
   s.add_development_dependency "rspec-rails"
