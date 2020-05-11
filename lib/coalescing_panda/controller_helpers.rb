@@ -2,6 +2,7 @@ require 'browser'
 
 module CoalescingPanda
   module ControllerHelpers
+    include IMS::LTI::RequestValidator
     require 'useragent'
 
     def canvas_oauth2(*roles)
@@ -60,13 +61,15 @@ module CoalescingPanda
 
     def lti_authorize!(*roles)
       authorized = false
+      puts ('user_agent: ' + request.user_agent.to_json)
+      browser ||= Browser.new({ua: request.user_agent})
       use_secure_headers_override(:safari_override) if browser.safari?
       if @lti_account = params['oauth_consumer_key'] && LtiAccount.find_by_key(params['oauth_consumer_key'])
         sanitized_params = sanitize_params
-        authenticator = IMS::LTI::Services::MessageAuthenticator.new(request.original_url, sanitized_params, @lti_account.secret)
-        authorized = authenticator.valid_signature?
-        @tp = IMS::LTI::ToolProvider.new(@lti_account.key, @lti_account.secret, params)
-        authorized = authorized && @tp.valid_request?(request)
+        # authorized = valid_request?(request)
+        # authorized = authenticator.valid_signature?
+        @tp = IMS::LTI::ToolProvider.new(@lti_account.key, @lti_account.secret, sanitized_params)
+        authorized = @tp.valid_request?(request)
       end
       logger.info 'not authorized on tp valid request' if !authorized
       authorized = authorized && (roles.count == 0 || (roles & lti_roles).count > 0)
@@ -145,16 +148,20 @@ module CoalescingPanda
       # In this case, we should make sure the session cookie is fixed and redirect back to canvas to properly launch the embedded LTI.
       if params[:platform_redirect_url]
         session[:safari_cookie_fixed] = true
+
         redirect_to params[:platform_redirect_url]
         return false
       end
       true
     end
+
     def cookies_need_iframe_fix?
-      @browser ||= Browser.new(request.user_agent)
-      @browser.safari? && !request.referrer.include?('sessionless_launch') && !session[:safari_cookie_fixed]  && !params[:platform_redirect_url]
+      browser ||= Browser.new({ua: request.user_agent})
+      browser.safari? && !request.referrer.include?('sessionless_launch') && !session[:safari_cookie_fixed]  && !params[:platform_redirect_url]
     end
+
     def fix_iframe_cookies
+      puts "fix_iframe_cookies running -------------------------------------------------"
       if params[:safari_cookie_fix].present?
         session[:safari_cookie_fixed] = true
         redirect_to params[:return_to]
